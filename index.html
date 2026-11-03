@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bryce Perryman Simulator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Stencil:wght@500;800;900&family=Courier+Prime:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    color-scheme: light;
+    --toner: #000000;
+    --asphalt: #38383b;
+    --concrete: #8d8d8a;
+    --xerox: #d9d9d3;
+    --paper: #f3f3ef;
+    --stage: #e0218a;
+    --cold: #2442d6;
+    --stencil: "Big Shoulders Stencil", Impact, "Arial Narrow", sans-serif;
+    --typed: "Courier Prime", "Courier New", monospace;
+  }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  html { background: var(--asphalt); }
+  body {
+    margin: 0;
+    min-height: 100dvh;
+    color: var(--toner);
+    font: 400 1.0625rem/1.5 var(--typed);
+    background-color: var(--asphalt);
+    /* Photocopier grain */
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .45 0'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+  h1, h2, h3, p { margin: 0; }
+  button { font: inherit; color: inherit; cursor: pointer; }
+  :focus-visible { outline: 3px solid var(--cold); outline-offset: 3px; }
+
+  /* Buttons look like strips cut from a flyer */
+  .strip {
+    display: block;
+    width: 100%;
+    padding: .7rem .9rem;
+    text-align: left;
+    border: 0;
+    background: var(--toner);
+    color: var(--paper);
+    box-shadow: 4px 4px 0 var(--stage);
+    transition: translate .08s, box-shadow .08s;
+  }
+  .strip:hover { translate: -2px -2px; box-shadow: 6px 6px 0 var(--stage); }
+  .strip:active { translate: 4px 4px; box-shadow: 0 0 0 var(--stage); }
+  .strip small { display: block; margin-top: .15rem; color: var(--xerox); font-size: .875rem; }
+
+  /* Title poster */
+  #title { min-height: 100dvh; display: grid; align-content: center; padding: 1.5rem 1rem; }
+  .poster {
+    display: grid;
+    gap: 1.5rem;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: stretch;
+    width: min(1040px, 100%);
+    margin-inline: auto;
+  }
+  .boxes { display: grid; align-content: start; gap: .35rem; }
+  .boxes h1 { display: contents; font: inherit; }
+  .boxes span {
+    display: block;
+    width: 100%;
+    padding: .02em .1em .06em;
+    color: var(--toner);
+    background: var(--paper);
+    font: 900 clamp(3.2rem, 11vw, 7.4rem)/.95 var(--stencil);
+    text-transform: uppercase;
+    text-align: center;
+    @media (prefers-reduced-motion: no-preference) {
+      animation: stamp .28s cubic-bezier(.2, 1.6, .4, 1) backwards;
+      &:nth-child(2) { animation-delay: .22s; }
+      &:nth-child(3) { animation-delay: .44s; }
+    }
+  }
+  .boxes span:nth-child(3) { font-size: clamp(2.5rem, 8.2vw, 5.4rem); padding-block: .1em .16em; }
+  @keyframes stamp { from { opacity: 0; scale: 1.5; } }
+  .pitch { margin-top: 1rem; color: var(--paper); }
+  .pitch strong { display: block; font: 800 clamp(1.6rem, 3.6vw, 2.2rem)/1.1 var(--stencil); margin-bottom: .5rem; }
+  .pitch p { max-width: 42ch; }
+  #start { margin-top: 1.25rem; max-width: 22rem; background: var(--stage); color: var(--toner); box-shadow: 4px 4px 0 var(--paper); font-weight: 700; }
+  #start:hover { box-shadow: 6px 6px 0 var(--paper); }
+  #titleCanvas { display: block; width: 100%; height: 100%; min-height: 320px; background: var(--toner); }
+  .fine { color: var(--xerox); font-size: .875rem; margin-top: 1rem; max-width: 48ch; }
+
+  /* The game */
+  #game { width: min(1120px, 100%); margin-inline: auto; padding: 1rem; display: grid; gap: 1rem; }
+  .bar { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; color: var(--paper); }
+  .bar h2 { font: 900 clamp(1.8rem, 5vw, 2.6rem)/1 var(--stencil); }
+  .textBtn { border: 0; background: none; color: var(--paper); text-decoration: underline; padding: .25rem; font-size: .9375rem; }
+  .table { display: grid; gap: 1.25rem; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); align-items: start; }
+  #scene { display: block; width: 100%; aspect-ratio: 800 / 330; background: var(--xerox); }
+  .pileNote { color: var(--paper); margin-top: .4rem; font-size: .9375rem; min-height: 1.5em; }
+
+  .stats { margin: .9rem 0 0; display: grid; gap: .35rem .9rem; grid-template-columns: repeat(2, minmax(0, 1fr)); color: var(--paper); }
+  .stat { display: grid; grid-template-columns: auto 1fr; gap: 0 .5rem; align-items: baseline; font-size: .9375rem; }
+  .stat dd { margin: 0; text-align: right; font-weight: 700; }
+  .stat dt { font-weight: 400; }
+  .meter { grid-column: 1 / -1; height: 10px; background: var(--toner); }
+  .meter i { display: block; height: 100%; background: var(--paper); transition: width .35s; }
+  .stat.danger .meter i { background: var(--stage); }
+
+  /* The paper the story is typed on */
+  #card {
+    padding: 1.25rem;
+    background: var(--paper);
+    box-shadow: 7px 7px 0 var(--toner);
+    rotate: -.5deg;
+    min-height: 17rem;
+  }
+  #card .say { font-size: 1.1875rem; line-height: 1.45; max-width: 42ch; }
+  #card .changes { margin-top: .75rem; font-style: italic; color: var(--asphalt); font-size: .9375rem; }
+  .choices { display: grid; gap: .8rem; margin-top: 1.1rem; }
+  .needs { display: block; margin-top: .15rem; color: var(--xerox); font-size: .875rem; }
+  .rollLine { display: flex; align-items: center; gap: .8rem; margin-bottom: .9rem; }
+  .die {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 3.6rem;
+    height: 3.6rem;
+    color: var(--paper);
+    background: var(--cold);
+    clip-path: polygon(50% 0, 95% 25%, 95% 75%, 50% 100%, 5% 75%, 5% 25%);
+    font: 900 1.6rem/1 var(--stencil);
+  }
+  .die.won { background: var(--toner); }
+  .die.lost { background: var(--stage); }
+
+  /* The show */
+  #show { width: min(960px, 96vw); max-width: none; padding: 0; border: 0; background: var(--toner); color: var(--paper); }
+  #show:modal { overscroll-behavior: contain; }
+  #show::backdrop { background: rgb(0 0 0 / .85); overflow: hidden; overscroll-behavior: contain; }
+  #showCanvas { display: block; width: 100%; aspect-ratio: 900 / 506; touch-action: manipulation; cursor: pointer; }
+  .showBar { display: flex; justify-content: space-between; gap: 1rem; padding: .4rem .75rem; align-items: center; font-size: .9375rem; }
+
+  /* The end */
+  #ending { width: min(760px, 100%); margin-inline: auto; padding: 2rem 1rem; display: grid; gap: 1.5rem; }
+  #ending .headline { color: var(--paper); font: 900 clamp(2.6rem, 9vw, 5rem)/.95 var(--stencil); }
+  #ending .sheet { padding: 1.25rem; background: var(--paper); box-shadow: 7px 7px 0 var(--stage); }
+  #ending .story { max-width: 58ch; font-size: 1.1875rem; }
+  #ending .award { font: 800 1.75rem/1.1 var(--stencil); margin-top: 1rem; }
+  .about { margin-top: 1.25rem; padding-top: 1rem; border-top: 3px solid var(--toner); }
+  .about h3 { font: 800 1.25rem/1.2 var(--stencil); margin-bottom: .25rem; }
+  .about p + h3 { margin-top: .6rem; }
+  .tally { margin: 1.25rem 0 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr)); gap: .75rem; }
+  .tally dd { margin: 0; font: 900 2.6rem/1 var(--stencil); }
+  .tally dt { font-size: .9375rem; }
+  .tally div { display: flex; flex-direction: column-reverse; justify-content: flex-end; }
+  #again { max-width: 18rem; }
+
+  @media (max-width: 760px) {
+    .poster, .table { grid-template-columns: minmax(0, 1fr); }
+    #titleCanvas { height: 280px; min-height: 0; }
+    /* Yard, then the story, then the numbers, so choices stay near the top on phones */
+    .table > div { display: contents; }
+    #card { rotate: none; order: 1; }
+    .stats { order: 2; margin-top: 0; }
+  }
+</style>
+</head>
+<body>
+
+<section id="title">
+  <div class="poster">
+    <div>
+      <div class="boxes">
+        <h1 aria-label="Straight outta Bremerton"><span>Straight</span><span>Outta</span><span>Bremerton</span></h1>
+      </div>
+      <div class="pitch">
+        <strong>The Bryce Perryman simulator</strong>
+        <p>Ten days. One pile in the yard. Tara would like some help around the house, and there's a dump run that needs doing. Your job is to not do any of it.</p>
+        <button id="start" class="strip">Start avoiding</button>
+      </div>
+    </div>
+    <canvas id="titleCanvas" width="900" height="900" aria-label="A silhouette headbanging under stage lights" role="img"></canvas>
+  </div>
+  <p class="fine" style="margin-inline:auto;width:min(1040px,100%);max-width:none">An affectionate parody. Everything that happens in here is made up.</p>
+</section>
+
+<section id="game" hidden>
+  <div class="bar">
+    <h2 id="dayLabel">Day 1</h2>
+    <button id="muteBtn" class="textBtn">Mute sound</button>
+  </div>
+  <div class="table">
+    <div>
+      <canvas id="scene" width="800" height="330" role="img" aria-label="Your yard, with the pile"></canvas>
+      <p class="pileNote" id="pileNote"></p>
+      <dl class="stats" id="stats"></dl>
+    </div>
+    <article id="card" aria-live="polite"></article>
+  </div>
+</section>
+
+<dialog id="show" aria-label="A show at The Charleston">
+  <canvas id="showCanvas" width="900" height="506"></canvas>
+  <div class="showBar">
+    <span>Press space or tap the stage on the beat.</span>
+    <button id="leaveShow" class="textBtn" autofocus>Leave early</button>
+  </div>
+</dialog>
+
+<section id="ending" hidden>
+  <h2 class="headline" id="endHead"></h2>
+  <div class="sheet">
+    <p class="story" id="endBody"></p>
+    <p class="award" id="endAward"></p>
+    <dl class="tally" id="endTally"></dl>
+    <div class="about">
+      <h3>Work</h3>
+      <p>No workplaces to show</p>
+      <h3>College</h3>
+      <p>Studies computer science at Olympic College</p>
+      <p id="endYears">2016 to Present</p>
+      <p>Hard</p>
+    </div>
+  </div>
+  <button id="again" class="strip">Avoid it all again</button>
+  <p class="fine">An affectionate parody. Everything that happens in here is made up.</p>
+</section>
+
+<script src="vendor/three.min.js"></script>
+<script src="vendor/GLTFLoader.js"></script>
+<script src="assets/hairstorm.js"></script>
+<script src="events.js"></script>
+<script src="model.js"></script>
+<script src="game.js"></script>
+</body>
+</html>
