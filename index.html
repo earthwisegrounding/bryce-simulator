@@ -134,7 +134,8 @@
   .die.lost { background: var(--stage); }
 
   /* The show */
-  #show { width: min(960px, 96vw); max-width: none; padding: 0; border: 0; background: var(--toner); color: var(--paper); }
+  /* The width cap keeps the whole stage and its controls on screen on short, wide displays */
+  #show { width: min(960px, 96vw, calc((100dvh - 4.5rem) * 900 / 506)); max-width: none; max-height: 100dvh; padding: 0; border: 0; background: var(--toner); color: var(--paper); touch-action: manipulation; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; }
   #show:modal { overscroll-behavior: contain; }
   #show::backdrop { background: rgb(0 0 0 / .85); overflow: hidden; overscroll-behavior: contain; }
   #showCanvas { display: block; width: 100%; aspect-ratio: 900 / 506; touch-action: manipulation; cursor: pointer; }
@@ -202,7 +203,7 @@
 <dialog id="show" aria-label="A show at The Charleston">
   <canvas id="showCanvas" width="900" height="506"></canvas>
   <div class="showBar">
-    <span>Press space or tap the stage on the beat.</span>
+    <span>Tap anywhere on the beat, or press space.</span>
     <button id="leaveShow" class="textBtn" autofocus>Leave early</button>
   </div>
 </dialog>

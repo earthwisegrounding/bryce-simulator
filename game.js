@@ -447,14 +447,16 @@ const show = {
     drawCrowd(ctx, W, H, Math.max(0, t), clamp(this.combo / 14, 0, 1));
 
     // Note track
-    const trackY = 54;
-    const hitX = 96;
+    // On a phone the stage is drawn small, so the track and text get bigger
+    const big = $("showCanvas").clientWidth < 560 ? 1.8 : 1;
+    const trackY = 22 + 32 * big;
+    const hitX = 96 + 14 * (big - 1);
     ctx.fillStyle = "rgba(0,0,0,.72)";
-    ctx.fillRect(0, trackY - 32, W, 64);
+    ctx.fillRect(0, trackY - 32 * big, W, 64 * big);
     ctx.strokeStyle = COLORS.paper;
     ctx.lineWidth = 4;
     ctx.beginPath();
-    ctx.arc(hitX, trackY, 22 + this.pulse * 5, 0, Math.PI * 2);
+    ctx.arc(hitX, trackY, (22 + this.pulse * 5) * big, 0, Math.PI * 2);
     ctx.stroke();
     ctx.fillStyle = COLORS.paper;
     for (const n of this.notes) {
@@ -463,26 +465,27 @@ const show = {
       if (x < -20 || x > W + 20) continue;
       ctx.globalAlpha = n.missed ? 0.25 : 1;
       ctx.beginPath();
-      ctx.arc(x, trackY, 14, 0, Math.PI * 2);
+      ctx.arc(x, trackY, 14 * big, 0, Math.PI * 2);
       ctx.fill();
     }
     ctx.globalAlpha = 1;
 
     ctx.textAlign = "right";
     ctx.fillStyle = COLORS.paper;
-    ctx.font = '900 56px "Big Shoulders Stencil", Impact, sans-serif';
-    if (this.combo > 2) ctx.fillText(`${this.combo} in a row`, W - 24, 176);
-    ctx.font = '800 30px "Big Shoulders Stencil", Impact, sans-serif';
-    ctx.fillText(`${this.band}, live at The Charleston`, W - 24, 120);
+    const textTop = trackY + 32 * big;
+    ctx.font = `900 ${56 * big}px "Big Shoulders Stencil", Impact, sans-serif`;
+    if (this.combo > 2) ctx.fillText(`${this.combo} in a row`, W - 24, textTop + 34 * big + 56 * big);
+    ctx.font = `800 ${30 * Math.min(big, 1.45)}px "Big Shoulders Stencil", Impact, sans-serif`;
+    ctx.fillText(`${this.band}, live at The Charleston`, W - 24, textTop + 34 * Math.min(big, 1.45));
 
     ctx.textAlign = "left";
     if (t - this.wordAt < 0.45) {
-      ctx.font = '900 42px "Big Shoulders Stencil", Impact, sans-serif';
-      ctx.fillText(this.word, 40, 124);
+      ctx.font = `900 ${42 * big}px "Big Shoulders Stencil", Impact, sans-serif`;
+      ctx.fillText(this.word, 40, textTop + 94 * big);
     }
     if (t < 0) {
-      ctx.font = '900 52px "Big Shoulders Stencil", Impact, sans-serif';
-      ctx.fillText("Get ready", 40, 134);
+      ctx.font = `900 ${52 * big}px "Big Shoulders Stencil", Impact, sans-serif`;
+      ctx.fillText("Get ready", 40, textTop + 94 * big);
     }
   },
   finish() {
@@ -1026,7 +1029,9 @@ $("again").addEventListener("click", () => game.newGame());
 $("muteBtn").addEventListener("click", () => sound.toggle());
 $("leaveShow").addEventListener("click", () => show.finish());
 $("show").addEventListener("close", () => show.finish());
-$("showCanvas").addEventListener("pointerdown", (e) => {
+// Tap anywhere during the show: the stage, the bar under it, or the backdrop
+$("show").addEventListener("pointerdown", (e) => {
+  if (e.target.closest("button")) return;
   e.preventDefault();
   show.bang();
 });
